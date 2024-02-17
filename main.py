@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from models.med import BertConfig, BertLMHeadModel
 from transformers import BertTokenizer
-from transformers import VisionTransformer
+from models.vit import VisionTransformer
 
 def init_tokenizer():
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
