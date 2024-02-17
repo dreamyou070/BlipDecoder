@@ -70,6 +70,9 @@ img_dir = '/home/dreamyou070/MyData/anomal_source/dtd_images/banded/banded_0002.
 image = Image.open(img_dir)
 inputs = processor(text=["a photo of a cat", "a photo of a dog"],
                    images=image, return_tensors="pt", padding=True)
-print(inputs)
+img = inputs['pixel_values']
+txt = inputs['input_ids']
+attention_mask = inputs['attention_mask']
+print (f'input img : {img.shape}, input txt : {txt.shape}')
 caption_moel = BLIP_Decoder()
-#result = caption_moel(**inputs)
+result = caption_moel(image=img, caption='cat')
