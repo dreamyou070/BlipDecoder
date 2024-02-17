@@ -150,9 +150,6 @@ class BertSelfAttention(nn.Module):
         past_key_value=None,
         output_attentions=False,
     ):
-        print(f' Bert Self Attention')
-        print(f'text, hidden_states.shape: {hidden_states.shape}')
-        print(f'text, attention_mask.shape: {attention_mask.shape}')
         mixed_query_layer = self.query(hidden_states)
 
         is_cross_attention = encoder_hidden_states is not None
@@ -169,9 +166,9 @@ class BertSelfAttention(nn.Module):
         else:
             key_layer = self.transpose_for_scores(self.key(hidden_states))
             value_layer = self.transpose_for_scores(self.value(hidden_states))
-        query_layer = self.transpose_for_scores(mixed_query_layer)
+        query_layer = self.transpose_for_scores(mixed_query_layer) # batch, 3, 768 --> batch, 4, 3, 192
+        print("shape corrected query_layer", query_layer.shape)
         past_key_value = (key_layer, value_layer)
-
         # Take the dot product between "query" and "key" to get the raw attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
@@ -189,6 +186,7 @@ class BertSelfAttention(nn.Module):
                 relative_position_scores_query = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
                 relative_position_scores_key = torch.einsum("bhrd,lrd->bhlr", key_layer, positional_embedding)
                 attention_scores = attention_scores + relative_position_scores_query + relative_position_scores_key
+
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
         if attention_mask is not None:
             if not is_cross_attention:
