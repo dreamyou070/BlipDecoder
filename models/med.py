@@ -150,11 +150,11 @@ class BertSelfAttention(nn.Module):
         past_key_value=None,
         output_attentions=False,
     ):
+        print(f' Bert Self Attention')
+        print(f'text, hidden_states.shape: {hidden_states.shape}')
+        print(f'text, attention_mask.shape: {attention_mask.shape}')
         mixed_query_layer = self.query(hidden_states)
 
-        # If this is instantiated as a cross-attention module, the keys
-        # and values come from an encoder; the attention mask needs to be
-        # such that the encoder's padding tokens are not attended to.
         is_cross_attention = encoder_hidden_states is not None
 
         if is_cross_attention:
@@ -330,26 +330,25 @@ class BertLayer(nn.Module):
         self.intermediate = BertIntermediate(config)
         self.output = BertOutput(config)
 
-    def forward(
-        self,
-        hidden_states,
-        attention_mask=None,
-        head_mask=None,
-        encoder_hidden_states=None,
-        encoder_attention_mask=None,
-        past_key_value=None,
-        output_attentions=False,
-        mode=None,
-    ):
-        # decoder uni-directional self-attention cached key/values tuple is at positions 1,2
+    def forward(self,
+                hidden_states,
+                attention_mask=None,
+                head_mask=None,
+                encoder_hidden_states=None,
+                encoder_attention_mask=None,
+                past_key_value=None,
+                output_attentions=False,
+                mode=None,):
         self_attn_past_key_value = past_key_value[:2] if past_key_value is not None else None
-        self_attention_outputs = self.attention(
-            hidden_states,
-            attention_mask,
-            head_mask,
-            output_attentions=output_attentions,
-            past_key_value=self_attn_past_key_value,
-        )
+        # -------------------------------- Self Attention -------------------------------- #
+        # hidden_states = [batch_size, seq_len, hidden_size]
+        # attention_mask = [batch_size, batch_size, seq_len, seq_len]
+
+        self_attention_outputs = self.attention(hidden_states,
+                                                attention_mask,
+                                                head_mask,
+                                                output_attentions=output_attentions,
+                                                past_key_value=self_attn_past_key_value,)
         attention_output = self_attention_outputs[0]
 
         outputs = self_attention_outputs[1:-1]
@@ -414,12 +413,8 @@ class BertEncoder(nn.Module):
                 all_hidden_states = all_hidden_states + (hidden_states,)
             layer_head_mask = head_mask[i] if head_mask is not None else None
             past_key_value = past_key_values[i] if past_key_values is not None else None
-
-            print(f' in bertencoder')
-            print(f'text, hidden_states.shape: {hidden_states.shape}')
-            print(f'text, attention_mask.shape: {attention_mask.shape}')
-            print(f'img, encoder_hidden_states.shape: {encoder_hidden_states.shape}')
-            print(f'img, encoder_attention_mask.shape: {encoder_attention_mask.shape}')
+            #print(f'img, encoder_hidden_states.shape: {encoder_hidden_states.shape}')
+            #print(f'img, encoder_attention_mask.shape: {encoder_attention_mask.shape}')
 
             if self.gradient_checkpointing and self.training:
 
